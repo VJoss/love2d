@@ -1,202 +1,40 @@
-pad = {}
-pad.x = 20
-pad.y = love.graphics.getHeight() / 2 - 40
-pad.largeur = 20
-pad.hauteur = 79
+-- ==============================================
+--  CONSTANTES
+-- ==============================================
+require("menu")
+require("jeu")
 
+scene = "menu"
 
-pad2 = {}
-pad2.x = love.graphics.getWidth() - 40
-pad2.y = love.graphics.getHeight() / 2 -40
-pad2.largeur = 20
-pad2.hauteur = 79
-
-balle = {}
-balle.x = 400
-balle.y = 300
-balle.largeur = 20
-balle.hauteur = 20
-balle.vitesse_x = 4
-balle.vitesse_y = 4
-scorePlayer_1 = 0
-scorePlayer_2 = 0
-
-package.path = package.path..";C:/Users/Joss/Desktop/GAMEDEV/?.lua"
-
-function newAnimation(image, width, height, duration)
-  local animation = {}
-  animation.spriteSheet = image;
-  animation.quads = {};
-  
-  for y = 0, image:getHeight() - height, height do
-    for x = 0, image:getWidth() - width, width do
-      table.insert(animation.quads, love.graphics.newQuad(x, y, width, height, image:getDimensions()))
-    end
-  end
-  
-  animation.duration = duration or 1
-  animation.currentTime = 0
-  
-  return animation
-  
-
-  end
-
-
-function player_1_Point()
-    scorePlayer_1 = scorePlayer_1 + 1 
-  end
-  function player_2_Point()
-    scorePlayer_2 = scorePlayer_2 + 1
-    end
-  
-    function centreBalle()
-  balle.x = love.graphics.getWidth() / 2
-  balle.x = balle.x - balle.largeur / 2
-  
-  balle.y = love.graphics.getHeight() / 2
-  balle.y = balle.y - balle.hauteur / 2
-  
-end
-
- function sonExplosion()
-   explosion = love.audio.newSource("explosion.mp3", "static")
-   love.audio.play(explosion)
- end
- 
- function sonRebond()
-   rebond = love.audio.newSource("rebond.mp3", "static")
-   love.audio.play(rebond)
-   end
-  
-    function bgmGame()
-    bgm = love.audio.newSource("bgm_game.mp3", "stream")
-    love.audio.play(bgm)
-    end
-function volume()
-  volume = love.audio.setVolume( 0.05)
-  end
-  
+-- ==============================================
+--  LOADS
+-- ==============================================
 function love.load()
-    require 'mainmenu'
-
-  -- Charger l'image de fond
-    background = love.graphics.newImage("background.png")
-    
-    -- Initialiser la position de l'image de fond
-    backgroundX1 = 0
-    backgroundX2 = -background:getWidth()
-    
-    -- Initialiser la vitesse de défilement de l'image de fond
-    backgroundSpeed = 100
-bgmGame()
- volume()
- centreBalle()
- player = love.graphics.newImage("neonP.png")
- font = love.graphics.newFont ("ThaleahFat.ttf", 45, normal)
- animation = newAnimation(love.graphics.newImage("spritesheet.png"), 16, 16, 1)
- animation2 = newAnimation(love.graphics.newImage("spritesheet2.png"), 16, 16, 1)
- 
+    loadMenu()
 end
 
+-- ==============================================
+--  UPDATE
+-- ==============================================
 function love.update(dt)
-  
-  
-  animation.currentTime = animation.currentTime + dt
-  if animation.currentTime >= animation.duration then
-     animation.currentTime = animation.currentTime - animation.duration
- 
-  end
+    if scene == "menu" then
+        updateMenu(dt)
 
-    if love.keyboard.isDown("s") and pad.y < love.graphics.getHeight() - pad.hauteur then
-    pad.y = pad.y + 4
-  end
-  if love.keyboard.isDown("z") and pad.y > 0 then
-    pad.y = pad.y - 4
-  end
-  if love.keyboard.isDown("down") and pad2.y < love.graphics.getHeight() - pad2.hauteur then
-    pad2.y = pad2.y + 4
-  end
-  if love.keyboard.isDown("up") and pad2.y > 0 then
-    pad2.y = pad2.y - 4
+    elseif scene == "jeu" then
+        updateJeu(dt)
     end
-  
-  balle.x = balle.x + balle.vitesse_x
-  balle.y = balle.y + balle.vitesse_y
-  
-  if balle.x < 0 then
-    centreBalle()
-    sonExplosion()
-    player_2_Point()
-    balle.vitesse_x = -2
-    balle.vitesse_y = -2
-  end
- 
-  if balle.y < 0 then
-    balle.vitesse_y = balle.vitesse_y * -1
-  end
-  if balle.x > love.graphics.getWidth() then
-    centreBalle()
-    sonExplosion()
-    player_1_Point()
-    balle.vitesse_x =  2
-    balle.vitesse_y =  2
-  end
-  if balle.y > love.graphics.getHeight() - balle.hauteur then
-    balle.vitesse_y = balle.vitesse_y * -1
-  end
-  
-  if balle.x <= pad.x + pad.largeur then
-    if balle.y + balle.hauteur > pad.y and balle.y < pad.y + pad.hauteur
-    then
-      balle.x = pad.x + pad.largeur
-      balle.vitesse_x = balle.vitesse_x * -1
-      balle.vitesse_x = balle.vitesse_x + 1
-      sonRebond()
-      end
-    end
-    if balle.x + balle.largeur >= pad2.x then
-      if balle.y + balle.hauteur > pad2.y and balle.y < pad2.y + pad2.hauteur
-      then
-        balle.x = pad2.x - pad2.largeur
-        balle.vitesse_x = balle.vitesse_x * -1
-        balle.vitesse_x = balle.vitesse_x - 1
-        sonRebond()
-        end
-      end
- -- Mettre à jour la position de l'image de fond en fonction de la vitesse de défilement
-    backgroundX1 = backgroundX1 + backgroundSpeed * dt
-    backgroundX2 = backgroundX2 + backgroundSpeed * dt
-    
-    -- Si la première instance de l'image de fond sort de l'écran, la ramener en haut
-    if backgroundX1 > love.graphics.getWidth() then
-        backgroundX1 = backgroundX2 - background:getWidth()
-    end
-    
-    -- Si la deuxième instance de l'image de fond sort de l'écran, la ramener en haut
-    if backgroundX2 > love.graphics.getWidth() then
-        backgroundX2 = backgroundX1 - background:getWidth()
-    end
+
 end
 
+-- ==============================================
+--  DRAW
+-- ==============================================
 function love.draw()
-  love.graphics.rectangle("fill", pad.x, pad.y, pad.largeur, pad.hauteur)
-  love.graphics.rectangle("fill", pad2.x, pad2.y, pad2.largeur, pad2.hauteur)
-  love.graphics.rectangle("fill", balle.x, balle.y, balle.largeur, balle.hauteur)
--- Dessiner l'image de fond en deux instances pour remplir l'écran
-    love.graphics.draw(background, backgroundX1, 0)
-    love.graphics.draw(background, backgroundX2, 0)
-  love.graphics.draw(player, pad.x, pad.y)
-  love.graphics.draw(player, pad2.x, pad2.y)
-  love.graphics.setFont(font)
-  love.graphics.print(scorePlayer_1, 370, 24)
-  love.graphics.print("Score", 348,3)
-  love.graphics.print(scorePlayer_2, 420, 24)
-  local spriteNum = math.floor(animation.currentTime / animation.duration * #animation.quads) + 1
-  love.graphics.draw(animation.spriteSheet, animation.quads[spriteNum], balle.x - 34, balle.y - 25, 0, 4)
-  
-  
-  
-  
+    if scene == "menu" then
+        drawMenu(dt)
+
+    elseif scene == "jeu" then
+        drawJeu(dt)
+    end
 
 end
